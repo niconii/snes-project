@@ -17,3 +17,22 @@ x16             .macro
                 rep #$10
                 .xl
                 .endmacro
+
+ax8             .macro
+                sep #$30
+                .as
+                .xs
+                .endmacro
+
+ax16            .macro
+                rep #$30
+                .al
+                .xl
+                .endmacro
+
+inc32           .macro addr
+                inc \addr
+                bne +
+                inc \addr+2
++
+                .endmacro
