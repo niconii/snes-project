@@ -1,5 +1,6 @@
 BUILD  = build
-INPUT  = $(wildcard src/*) $(wildcard include/*)
+SOURCE = $(wildcard src/*) $(wildcard include/*)
+INPUT  = src/main.asm
 OUTPUT = $(BUILD)/rom.sfc
 
 .PHONY: all clean
@@ -12,5 +13,5 @@ clean:
 $(BUILD):
 	mkdir -p $(BUILD)
 
-$(OUTPUT): $(INPUT)
-	64tass -f -l $(BUILD)/labels.txt -L $(BUILD)/listing.txt -o $@ src/main.asm
+$(OUTPUT): $(SOURCE)
+	64tass -f -l $(BUILD)/labels.txt -L $(BUILD)/listing.txt -o $@ $(INPUT)
