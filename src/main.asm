@@ -1,7 +1,7 @@
                 .cpu "65816"
-                .include "../include/65816.inc"
-                .include "../include/snes.inc"
-                .include "../include/ram.inc"
+                .include "65816.inc"
+                .include "snes.inc"
+                .include "ram.inc"
                 .lorom
 
                 .org $808000

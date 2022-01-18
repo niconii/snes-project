@@ -1,5 +1,5 @@
 BUILD  = build
-SOURCE = $(wildcard src/*) $(wildcard include/*)
+SOURCE = $(wildcard src/*)
 INPUT  = src/main.asm
 OUTPUT = $(BUILD)/rom.sfc
 
