@@ -1,6 +1,6 @@
 BUILD  = build
 SOURCE = $(wildcard src/*)
-INPUT  = src/main.asm
+INPUT  = src/rom.asm
 OUTPUT = $(BUILD)/rom.sfc
 
 .PHONY: all clean

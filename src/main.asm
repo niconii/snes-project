@@ -1,13 +1,4 @@
-                .cpu "65816"
-                .include "65816.inc"
-                .include "snes.inc"
-                .include "ram.inc"
-                .lorom
-
-                .org $808000
-                .include "reset.asm"
-
-                ldy #$0f
+main            ldy #$0f
                 sty ScrBrightness
                 sty INIDISP
 
@@ -51,6 +42,3 @@ vblank          rep #%11111011      ; clear all flags except interrupt
                 plb
 dummy_handler   rti                 ; interrupt handler that does nothing
 zero            .byte $00           ; used to clear memory with DMAs
-
-                .org $80ffc0
-                .include "header.asm"
