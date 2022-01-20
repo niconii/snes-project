@@ -7,6 +7,7 @@
                 .org $808000
                 .include "reset.asm"
                 .include "main.asm"
+                .binary "../build/graphics/font.2bpp"
 
                 .org $80ffc0
                 .include "header.asm"
