@@ -4,61 +4,17 @@
 #include <errno.h>
 #include <gif_lib.h>
 
+char *program_name = "gif2sfc";
+
 typedef unsigned char byte;
 
-typedef enum Result {
-    R_OK,
-
-    R_ERR_INPUT_OPEN_FAILED,
-    R_ERR_INPUT_READ_FAILED,
-    R_ERR_INPUT_CLOSE_FAILED,
-
-    R_ERR_OUTPUT_OPEN_FAILED,
-    R_ERR_OUTPUT_WRITE_FAILED,
-    R_ERR_OUTPUT_CLOSE_FAILED,
-
-    R_ERR_GIF_NO_GLOBAL_COLOR_MAP,
-    R_ERR_GIF_FRAME_COUNT_NOT_1,
-    R_ERR_GIF_LOCAL_COLOR_MAP,
-
-    R_ERR_IMAGE_BAD_BPP,
-    R_ERR_IMAGE_BAD_SIZE,
-} Result;
-
-char *Result_to_s(Result result) {
-    switch (result) {
-    case R_OK:
-        return "No error";
-
-    case R_ERR_INPUT_OPEN_FAILED:
-        return "Failed to open input file";
-    case R_ERR_INPUT_READ_FAILED:
-        return "Failed to read input file";
-    case R_ERR_INPUT_CLOSE_FAILED:
-        return "Failed to close input file";
-
-    case R_ERR_OUTPUT_OPEN_FAILED:
-        return "Failed to open output file";
-    case R_ERR_OUTPUT_WRITE_FAILED:
-        return "Failed to write output file";
-    case R_ERR_OUTPUT_CLOSE_FAILED:
-        return "Failed to close output file";
-
-    case R_ERR_GIF_NO_GLOBAL_COLOR_MAP:
-        return "GIF has no global color map";
-    case R_ERR_GIF_FRAME_COUNT_NOT_1:
-        return "GIF frame count must be 1";
-    case R_ERR_GIF_LOCAL_COLOR_MAP:
-        return "GIF frame must not have local color map";
-
-    case R_ERR_IMAGE_BAD_BPP:
-        return "Only 2bpp, 4bpp, or 8bpp supported";
-    case R_ERR_IMAGE_BAD_SIZE:
-        return "Image dimensions must be multiples of 8";
-
-    default:
-        return "Unknown error";
-    }
+void die(char *msg) {
+    fprintf(stderr, "%s: %s", program_name, msg);
+    if (errno)
+        fprintf(stderr, ": %s\n", strerror(errno));
+    else
+        fprintf(stderr, "\n");
+    exit(1);
 }
 
 typedef struct Bytes {
@@ -72,23 +28,20 @@ typedef struct Image {
     byte *pixels;
 } Image;
 
-Result Image_new(GifFileType *gif, Image *image) {
+Image Image_new(GifFileType *gif) {
     ColorMapObject *color_map = gif->SColorMap;
     if (!color_map)
-        return R_ERR_GIF_NO_GLOBAL_COLOR_MAP;
+        die("GIF frame must not have local color map");
     if (gif->ImageCount != 1)
-        return R_ERR_GIF_FRAME_COUNT_NOT_1;
+        die("GIF frame count must be 1");
 
     SavedImage *frame = &gif->SavedImages[0];
     if (frame->ImageDesc.ColorMap)
-        return R_ERR_GIF_LOCAL_COLOR_MAP;
+        die("GIF frame must not have local color map");
 
-    image->width = gif->SWidth;
-    image->height = gif->SHeight;
     int pixels_size = gif->SWidth * gif->SHeight;
-
-    image->pixels = malloc(pixels_size);
-    memset(image->pixels, gif->SBackGroundColor, pixels_size);
+    Image image = {gif->SWidth, gif->SHeight, malloc(pixels_size)};
+    memset(image.pixels, gif->SBackGroundColor, pixels_size);
 
     GifImageDesc *d = &frame->ImageDesc;
     for (int y = 0; y < d->Height; y++) {
@@ -97,17 +50,17 @@ Result Image_new(GifFileType *gif, Image *image) {
 
             int py = y + d->Top;
             int px = x + d->Left;
-            int pi = image->width*py + px;
+            int pi = image.width*py + px;
 
-            image->pixels[pi] = frame->RasterBits[fi];
+            image.pixels[pi] = frame->RasterBits[fi];
         }
     }
 
-    return R_OK;
+    return image;
 }
 
-void Image_free(Image *image) {
-    free(image->pixels);
+void Image_free(Image image) {
+    free(image.pixels);
 }
 
 void convert_2bpp(byte **out, byte *tile, int stride) {
@@ -126,70 +79,35 @@ void convert_2bpp(byte **out, byte *tile, int stride) {
     }
 }
 
-Result Image_to_planar(Image *image, int bpp, Bytes *tiles) {
+Bytes Image_to_planar(Image image, int bpp) {
     if (bpp != 2 && bpp != 4 && bpp != 8)
-        return R_ERR_IMAGE_BAD_BPP;
-    if (image->width % 8 || image->height % 8)
-        return R_ERR_IMAGE_BAD_SIZE;
+        die("Only 2bpp, 4bpp, or 8bpp supported");
+    if (image.width % 8 || image.height % 8)
+        die("Image dimensions must be multiples of 8");
 
-    int tile_w = image->width / 8;
-    int tile_h = image->height / 8;
+    int size = image.width * image.height * bpp / 8;
+    byte *bytes = malloc(size);
+    byte *out = bytes;
 
-    tiles->size = image->width * image->height * bpp / 8;
-    tiles->data = malloc(tiles->size);
-    byte *out = tiles->data;
-
-    for (int y = 0; y < image->height; y += 8) {
-        for (int x = 0; x < image->width; x += 8) {
-            byte *tile = &image->pixels[image->width*y + x];
+    for (int y = 0; y < image.height; y += 8) {
+        for (int x = 0; x < image.width; x += 8) {
+            byte *tile = &image.pixels[image.width*y + x];
             for (int i = 0; i < bpp/2; i++) {
-                convert_2bpp(&out, tile, image->width);
+                convert_2bpp(&out, tile, image.width);
             }
         }
     }
 
-    return R_OK;
-}
-
-Result go(char *in_name, char *out_name, int bpp) {
-    Result result;
-
-    GifFileType *gif = DGifOpenFileName(in_name, NULL);
-    if (!gif)
-        return R_ERR_INPUT_OPEN_FAILED;
-    if (!DGifSlurp(gif))
-        return R_ERR_INPUT_READ_FAILED;
-
-    Image image;
-    result = Image_new(gif, &image);
-    if (result != R_OK)
-        return result;
-    
-    if (!DGifCloseFile(gif, NULL))
-        return R_ERR_INPUT_CLOSE_FAILED;
-
-    Bytes tiles;
-    result = Image_to_planar(&image, bpp, &tiles);
-    if (result != R_OK)
-        return result;
-
-    FILE *out = fopen(out_name, "wb");
-    if (!out)
-        return R_ERR_OUTPUT_OPEN_FAILED;
-    if (!fwrite(tiles.data, tiles.size, sizeof(byte), out))
-        return R_ERR_OUTPUT_WRITE_FAILED;
-    if (fclose(out))
-        return R_ERR_OUTPUT_CLOSE_FAILED;
-
-    free(tiles.data);
-
-    return R_OK;
+    Bytes tiles = {size, bytes};
+    return tiles;
 }
 
 int main(int argc, char *argv[]) {
-    char *name = argc > 0 ? argv[0] : "gif2sfc";
+    if (argc > 0)
+        program_name = argv[0];
+
     if (argc != 4) {
-        fprintf(stderr, "Usage: %s bpp input.gif output\n", name);
+        fprintf(stderr, "Usage: %s bpp input.gif output\n", program_name);
         return 1;
     }
 
@@ -197,16 +115,28 @@ int main(int argc, char *argv[]) {
     char *in_name = argv[2];
     char *out_name = argv[3];
 
-    Result result = go(in_name, out_name, bpp);
-    if (result != R_OK) {
-        fprintf(stderr, "%s: %s", name, Result_to_s(result));
-        if (errno)
-            fprintf(stderr, ": %s\n", strerror(errno));
-        else
-            fprintf(stderr, "\n");
+    GifFileType *gif = DGifOpenFileName(in_name, NULL);
+    if (!gif)
+        die("Failed to open input file");
+    if (!DGifSlurp(gif))
+        die("Failed to read input file");
 
-        return 1;
-    }
+    Image image = Image_new(gif);
+
+    if (!DGifCloseFile(gif, NULL))
+        die("Failed to close input file");
+
+    Bytes tiles = Image_to_planar(image, bpp);
+
+    FILE *out = fopen(out_name, "wb");
+    if (!out)
+        die("Failed to open output file");
+    if (!fwrite(tiles.data, tiles.size, sizeof(byte), out))
+        die("Failed to write output file");
+    if (fclose(out))
+        die("Failed to close output file");
+
+    free(tiles.data);
 
     return 0;
 }
