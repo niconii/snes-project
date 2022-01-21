@@ -24,21 +24,14 @@ dma_to_vram     .macro chan, src, len, dst
                 .if \dst == $0000
                 stz VMADDL
                 .else
-                lda #\dst
-                sta VMADDL
+                mva #\dst, VMADDL
                 .endif
-                ldy #%00000001
-                sty DMAP0 + $10*\chan
-                ldy #<VMDATAL
-                sty BBAD0 + $10*\chan
-                lda #<>\src
-                sta A1T0L + $10*\chan
-                ldy #`\src
-                sty A1B0  + $10*\chan
-                lda #\len
-                sta DAS0L + $10*\chan
-                ldy #(1 << \chan)
-                sty MDMAEN
+                mvy #%00000001,  DMAP0 + $10*\chan
+                mvy #<VMDATAL,   BBAD0 + $10*\chan
+                mva #<>\src,     A1T0L + $10*\chan
+                mvy #`\src,      A1B0  + $10*\chan
+                mva #\len,       DAS0L + $10*\chan
+                mvy #1 << \chan, MDMAEN
                 .endmacro
 
                 ;; RGB functions
@@ -247,3 +240,206 @@ A2A7L           = $804378
 A2A7H           = $804379
 NTRL7           = $80437A
 UNUSED7         = $80437B
+
+                ;; MMIO registers (bank 0)
+zINIDISP        = $002100
+zOBSEL          = $002101
+zOAMADDL        = $002102
+zOAMADDH        = $002103
+zOAMDATA        = $002104
+zBGMODE         = $002105
+zMOSAIC         = $002106
+zBG1SC          = $002107
+zBG2SC          = $002108
+zBG3SC          = $002109
+zBG4SC          = $00210A
+zBG12NBA        = $00210B
+zBG34NBA        = $00210C
+zBG1HOFS        = $00210D
+zBG1VOFS        = $00210E
+zBG2HOFS        = $00210F
+zBG2VOFS        = $002110
+zBG3HOFS        = $002111
+zBG3VOFS        = $002112
+zBG4HOFS        = $002113
+zBG4VOFS        = $002114
+zVMAIN          = $002115
+zVMADDL         = $002116
+zVMADDH         = $002117
+zVMDATAL        = $002118
+zVMDATAH        = $002119
+zM7SEL          = $00211A
+zM7A            = $00211B
+zM7B            = $00211C
+zM7C            = $00211D
+zM7D            = $00211E
+zM7X            = $00211F
+zM7Y            = $002120
+zCGADD          = $002121
+zCGDATA         = $002122
+zW12SEL         = $002123
+zW34SEL         = $002124
+zWOBJSEL        = $002125
+zWH0            = $002126
+zWH1            = $002127
+zWH2            = $002128
+zWH3            = $002129
+zWBGLOG         = $00212A
+zWOBJLOG        = $00212B
+zTM             = $00212C
+zTS             = $00212D
+zTMW            = $00212E
+zTSW            = $00212F
+zCGWSEL         = $002130
+zCGADSUB        = $002131
+zCOLDATA        = $002132
+zSETINI         = $002133
+zMPYL           = $002134
+zMPYM           = $002135
+zMPYH           = $002136
+zSLHV           = $002137
+zRDOAM          = $002138
+zRDVRAML        = $002139
+zRDVRAMH        = $00213A
+zRDCGRAM        = $00213B
+zOPHCT          = $00213C
+zOPVCT          = $00213D
+zSTAT77         = $00213E
+zSTAT78         = $00213F
+zAPUI00         = $002140
+zAPUI01         = $002141
+zAPUI02         = $002142
+zAPUI03         = $002143
+zWMDATA         = $002180
+zWMADDL         = $002181
+zWMADDM         = $002182
+zWMADDH         = $002183
+zJOYWR          = $004016
+zJOYA           = $004016
+zJOYB           = $004017
+zNMITIMEN       = $004200
+zWRIO           = $004201
+zWRMPYA         = $004202
+zWRMPYB         = $004203
+zWRDIVL         = $004204
+zWRDIVH         = $004205
+zWRDIVB         = $004206
+zHTIMEL         = $004207
+zHTIMEH         = $004208
+zVTIMEL         = $004209
+zVTIMEH         = $00420A
+zMDMAEN         = $00420B
+zHDMAEN         = $00420C
+zMEMSEL         = $00420D
+zRDNMI          = $004210
+zTIMEUP         = $004211
+zHVBJOY         = $004212
+zRDIO           = $004213
+zRDDIVL         = $004214
+zRDDIVH         = $004215
+zRDMPYL         = $004216
+zRDMPYH         = $004217
+zJOY1L          = $004218
+zJOY1H          = $004219
+zJOY2L          = $00421A
+zJOY2H          = $00421B
+zJOY3L          = $00421C
+zJOY3H          = $00421D
+zJOY4L          = $00421E
+zJOY4H          = $00421F
+zDMAP0          = $004300
+zBBAD0          = $004301
+zA1T0L          = $004302
+zA1T0H          = $004303
+zA1B0           = $004304
+zDAS0L          = $004305
+zDAS0H          = $004306
+zDASB0          = $004307
+zA2A0L          = $004308
+zA2A0H          = $004309
+zNTRL0          = $00430A
+zUNUSED0        = $00430B
+zDMAP1          = $004310
+zBBAD1          = $004311
+zA1T1L          = $004312
+zA1T1H          = $004313
+zA1B1           = $004314
+zDAS1L          = $004315
+zDAS1H          = $004316
+zDASB1          = $004317
+zA2A1L          = $004318
+zA2A1H          = $004319
+zNTRL1          = $00431A
+zUNUSED1        = $00431B
+zDMAP2          = $004320
+zBBAD2          = $004321
+zA1T2L          = $004322
+zA1T2H          = $004323
+zA1B2           = $004324
+zDAS2L          = $004325
+zDAS2H          = $004326
+zDASB2          = $004327
+zA2A2L          = $004328
+zA2A2H          = $004329
+zNTRL2          = $00432A
+zUNUSED2        = $00432B
+zDMAP3          = $004330
+zBBAD3          = $004331
+zA1T3L          = $004332
+zA1T3H          = $004333
+zA1B3           = $004334
+zDAS3L          = $004335
+zDAS3H          = $004336
+zDASB3          = $004337
+zA2A3L          = $004338
+zA2A3H          = $004339
+zNTRL3          = $00433A
+zUNUSED3        = $00433B
+zDMAP4          = $004340
+zBBAD4          = $004341
+zA1T4L          = $004342
+zA1T4H          = $004343
+zA1B4           = $004344
+zDAS4L          = $004345
+zDAS4H          = $004346
+zDASB4          = $004347
+zA2A4L          = $004348
+zA2A4H          = $004349
+zNTRL4          = $00434A
+zUNUSED4        = $00434B
+zDMAP5          = $004350
+zBBAD5          = $004351
+zA1T5L          = $004352
+zA1T5H          = $004353
+zA1B5           = $004354
+zDAS5L          = $004355
+zDAS5H          = $004356
+zDASB5          = $004357
+zA2A5L          = $004358
+zA2A5H          = $004359
+zNTRL5          = $00435A
+zUNUSED5        = $00435B
+zDMAP6          = $004360
+zBBAD6          = $004361
+zA1T6L          = $004362
+zA1T6H          = $004363
+zA1B6           = $004364
+zDAS6L          = $004365
+zDAS6H          = $004366
+zDASB6          = $004367
+zA2A6L          = $004368
+zA2A6H          = $004369
+zNTRL6          = $00436A
+zUNUSED6        = $00436B
+zDMAP7          = $004370
+zBBAD7          = $004371
+zA1T7L          = $004372
+zA1T7H          = $004373
+zA1B7           = $004374
+zDAS7L          = $004375
+zDAS7H          = $004376
+zDASB7          = $004377
+zA2A7L          = $004378
+zA2A7H          = $004379
+zNTRL7          = $00437A
+zUNUSED7        = $00437B

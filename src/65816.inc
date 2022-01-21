@@ -30,6 +30,21 @@ ax16            .macro
                 .xl
                 .endmacro
 
+mva             .macro src, dst
+                lda \src
+                sta \dst
+                .endmacro
+
+mvx             .macro src, dst
+                ldx \src
+                stx \dst
+                .endmacro
+
+mvy             .macro src, dst
+                ldy \src
+                sty \dst
+                .endmacro
+
 inc32           .macro addr
                 inc \addr
                 bne +

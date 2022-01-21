@@ -1,25 +1,17 @@
 main            dma_to_vram 0, font, font_size, $0000
 
                 ; ldy #$01
-                sty TM              ; enable BG1
-                ldy #%00000100      ; map addr = $0400
-                sty BG1SC
-                ldy #$00            ; tile addr = $0000
-                sty BG12NBA
+                sty TM                  ; enable BG1
+                mvy #%00000100, BG1SC   ; map addr = $0400
+                mvy #$00,       BG12NBA ; tile addr = $0000
 
-                ; ldy #$00
                 sty CGADD
-                ldy #<rgb( 6,20,27)
-                sty CGDATA
-                ldy #>rgb( 6,20,27)
-                sty CGDATA
-                ldy #<rgb(31,31,31)
-                sty CGDATA
-                ldy #>rgb(31,31,31)
-                sty CGDATA
+                mvy #<rgb( 6,20,27), CGDATA
+                mvy #>rgb( 6,20,27), CGDATA
+                mvy #<rgb(31,31,31), CGDATA
+                mvy #>rgb(31,31,31), CGDATA
 
-                lda #($0400 + 32*2 + 2) ; BG1 map (2, 2)
-                sta VMADDL
+                mva #($0400+32*2+2), VMADDL ; BG1 map (2, 2)
                 a8
                 ldy #0
 -               lda hello_str,y
@@ -32,22 +24,17 @@ main            dma_to_vram 0, font, font_size, $0000
                 bra -
 +               a16
 
-                ldy #$0f
-                sty ScrBrightness
-
-                ldy #$81
-                sty NMITIMEN
+                mvy #$0f, ScrBrightness
+                mvy #$81, NMITIMEN
 
 main_loop       ; do processing here
 
                 jsr vsync
-                ldy #$8f            ; turn off screen for safety
-                sty INIDISP
+                mvy #$8f, INIDISP
 
                 ; update screen here
 
-                ldy ScrBrightness   ; turn screen back on
-                sty INIDISP
+                mvy ScrBrightness, INIDISP
                 inc32 StepCtL
                 jmp main_loop
 
