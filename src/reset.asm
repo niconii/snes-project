@@ -9,6 +9,11 @@ _fast           rep #%11101011      ; set status flags
                 sep #%00010100
                 .al
 
+                ldx #$80
+                phx
+                plb
+                .databank $80
+
                 ldx #$01            ; enable fast ROM in banks $80-$ff
                 stx MEMSEL
     
