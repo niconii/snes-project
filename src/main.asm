@@ -1,16 +1,4 @@
-main            stz VMADDL          ; copy font to vram
-                ldy #%00000001
-                sty DMAP0
-                ldy #<VMDATAL
-                sty BBAD0
-                lda #<>font
-                sta A1T0L
-                ldy #`font
-                sty A1B0
-                lda #font_size
-                sta DAS0L
-                ldy #(1 << 0)
-                sty MDMAEN
+main            dma_to_vram 0, font, font_size, $0000
 
                 ; ldy #$01
                 sty TM              ; enable BG1

@@ -19,6 +19,28 @@ org             .macro addr
                 .offs rom_addr - *
                 .endmacro
 
+                ;; Other macros
+dma_to_vram     .macro chan, src, len, dst
+                .if \dst == $0000
+                stz VMADDL
+                .else
+                lda #\dst
+                sta VMADDL
+                .endif
+                ldy #%00000001
+                sty DMAP0 + $10*\chan
+                ldy #<VMDATAL
+                sty BBAD0 + $10*\chan
+                lda #<>\src
+                sta A1T0L + $10*\chan
+                ldy #`\src
+                sty A1B0  + $10*\chan
+                lda #\len
+                sta DAS0L + $10*\chan
+                ldy #(1 << \chan)
+                sty MDMAEN
+                .endmacro
+
                 ;; RGB functions
 rgb             .sfunction r, g, b, (b << 10 | g << 5 | r)
 rgb24           .sfunction r, g, b, rgb(r >> 3, g >> 3, b >> 3)
