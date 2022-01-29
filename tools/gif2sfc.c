@@ -31,7 +31,7 @@ typedef struct Image {
 Image Image_new(GifFileType *gif) {
     ColorMapObject *color_map = gif->SColorMap;
     if (!color_map)
-        die("GIF frame must not have local color map");
+        die("GIF missing global color map");
     if (gif->ImageCount != 1)
         die("GIF frame count must be 1");
 
