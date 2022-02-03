@@ -1,14 +1,21 @@
-                .cpu "65816"
-                .include "65816.inc"
-                .include "snes.inc"
-                .include "ram.inc"
-                .lorom
+@asar 1.90
+arch 65816
+math round off
+namespace nested on
 
-                .org $808000
-                .include "reset.asm"
-                .include "main.asm"
-font            .binary "../build/graphics/font.2bpp"
-font_size       = * - font
+                optimize address mirrors
+                optimize dp always
 
-                .org $80ffc0
-                .include "header.asm"
+                lorom
+                incsrc "ram.inc"
+                incsrc "65816.inc"
+                incsrc "snes.inc"
+
+                org $808000
+                incsrc "reset.asm"
+                incsrc "main.asm"
+font:           incbin "../build/graphics/font.2bpp"
+data_end:
+
+                org $80ffc0
+                incsrc "header.asm"

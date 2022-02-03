@@ -1,53 +1,30 @@
-a8              .macro
-                sep #$20
-                .as
-                .endmacro
+                macro a8()
+                sep   #$20
+                endmacro
 
-a16             .macro
-                rep #$20
-                .al
-                .endmacro
+                macro a16()
+                rep   #$20
+                endmacro
 
-x8              .macro
-                sep #$10
-                .xs
-                .endmacro
+                macro x8()
+                sep   #$10
+                endmacro
 
-x16             .macro
-                rep #$10
-                .xl
-                .endmacro
+                macro x16()
+                rep   #$10
+                endmacro
 
-ax8             .macro
-                sep #$30
-                .as
-                .xs
-                .endmacro
+                macro ax8()
+                sep   #$30
+                endmacro
 
-ax16            .macro
-                rep #$30
-                .al
-                .xl
-                .endmacro
+                macro ax16()
+                rep   #$30
+                endmacro
 
-mva             .macro src, dst
-                lda \src
-                sta \dst
-                .endmacro
-
-mvx             .macro src, dst
-                ldx \src
-                stx \dst
-                .endmacro
-
-mvy             .macro src, dst
-                ldy \src
-                sty \dst
-                .endmacro
-
-inc32           .macro addr
-                inc \addr
-                bne +
-                inc \addr+2
+                macro inc32(addr)
+                inc   <addr>
+                bne   +
+                inc   <addr>+2
 +
-                .endmacro
+                endmacro

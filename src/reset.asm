@@ -1,204 +1,217 @@
-                .as
-                .xs
-reset           clc                 ; switch to 65816 native mode
+                bank noassume
+reset:          clc                 ; switch to 65816 native mode
                 xce
-                jml _fast           ; jump to bank $80 (fast ROM)
+                jml   .fast         ; jump to bank $80 (fast ROM)
 
-                ;     NVMXDIZC
-_fast           rep #%11101011      ; set status flags
-                sep #%00010100
-                .al
+                ;       NVMXDIZC
+.fast:          rep   #%11101011    ; set status flags
+                sep   #%00010100
 
-                mvx #$01, zMEMSEL   ; enable fast ROM in banks $80-$ff
-
-                ldx #$80
+                ldx.b #$80          ; set data bank to $80
                 phx
                 plb
-                .databank $80
+                bank $80
+
+                ldx.b #$01          ; enable fast ROM in banks $80-$ff
+                stx   MEMSEL
     
-                lda #$1fff          ; set stack pointer
+                lda.w #$1fff        ; set stack pointer to $1fff
                 tcs
 
-                lda #$2100          ; set direct page to $2100
+                lda.w #$2100        ; set direct page to $2100
                 tcd
-                .dpage $2100
-                a8
+                dpbase $2100
+                %a8()
 
                 ;; Screen settings
-                mva #$8f, zINIDISP  ; turn off screen, max brightness
+                lda.b #$8f          ; turn off screen, max brightness
+                sta   INIDISP
 
                 ;; OBJ (sprite) settings
-                stz zOBSEL          ; 8x8/16x16 sprites, no gap, base 0
-                stz zOAMADDL        ; OAM addr 0
-                stz zOAMADDH
+                stz   OBSEL         ; 8x8/16x16 sprites, no gap, base 0
+                stz   OAMADDL       ; OAM addr 0
+                stz   OAMADDH
                 
                 ;; Background settings
-                stz zBGMODE         ; 8x8 px tiles, BG3 prio normal, mode 0
-                stz zMOSAIC         ; size 1x1, mosaic off for all BGs
-                stz zBG1SC          ; BGs screen addr 0, 32x32 tile screen
-                stz zBG2SC
-                stz zBG3SC
-                stz zBG4SC
-                stz zBG12NBA        ; all BGs tiles addr 0
-                stz zBG34NBA
+                stz   BGMODE        ; 8x8 px tiles, BG3 prio normal, mode 0
+                stz   MOSAIC        ; size 1x1, mosaic off for all BGs
+                stz   BG1SC         ; BGs screen addr 0, 32x32 tile screen
+                stz   BG2SC
+                stz   BG3SC
+                stz   BG4SC
+                stz   BG12NBA       ; all BGs tiles addr 0
+                stz   BG34NBA
 
-                stz zBG1HOFS        ; all BGs scroll offset (0, 0)
-                stz zBG1HOFS
-                stz zBG1VOFS
-                stz zBG1VOFS
-                stz zBG2HOFS
-                stz zBG2HOFS
-                stz zBG2VOFS
-                stz zBG2VOFS
-                stz zBG3HOFS
-                stz zBG3HOFS
-                stz zBG3VOFS
-                stz zBG3VOFS
-                stz zBG4HOFS
-                stz zBG4HOFS
-                stz zBG4VOFS
-                stz zBG4VOFS
+                stz   BG1HOFS       ; all BGs scroll offset (0, 0)
+                stz   BG1HOFS
+                stz   BG1VOFS
+                stz   BG1VOFS
+                stz   BG2HOFS
+                stz   BG2HOFS
+                stz   BG2VOFS
+                stz   BG2VOFS
+                stz   BG3HOFS
+                stz   BG3HOFS
+                stz   BG3VOFS
+                stz   BG3VOFS
+                stz   BG4HOFS
+                stz   BG4HOFS
+                stz   BG4VOFS
+                stz   BG4VOFS
 
                 ;; VRAM settings
-                mva #$80, zVMAIN    ; auto-inc, no translation, step by 1
-                stz zVMADDL         ; VRAM addr 0
-                stz zVMADDH
+                lda.b #$80          ; auto-inc, no translation, step by 1
+                sta   VMAIN
+                stz   VMADDL        ; VRAM addr 0
+                stz   VMADDH
 
                 ;; Mode 7 settings
-                stz zM7SEL          ; wrap, no h/v flip
-                lda #$01
-                stz zM7A            ; a = 1.0
-                sta zM7A
-                stz zM7B            ; b = 0.0
-                stz zM7B
-                stz zM7C            ; c = 0.0
-                stz zM7C
-                stz zM7D            ; d = 1.0
-                sta zM7D
-                stz zM7X            ; x = 0.0
-                stz zM7X
-                stz zM7Y            ; y = 0.0
-                stz zM7Y
+                stz   M7SEL         ; wrap, no h/v flip
+                lda.b #$01
+                stz   M7A           ; a = 1.0
+                sta   M7A
+                stz   M7B           ; b = 0.0
+                stz   M7B
+                stz   M7C           ; c = 0.0
+                stz   M7C
+                stz   M7D           ; d = 1.0
+                sta   M7D
+                stz   M7X           ; x = 0.0
+                stz   M7X
+                stz   M7Y           ; y = 0.0
+                stz   M7Y
 
                 ;; CGRAM (palette) settings
-                stz zCGADD          ; CGRAM addr 0
+                stz   CGADD         ; CGRAM addr 0
 
                 ;; Window settings
-                stz zW12SEL         ; disable windows
-                stz zW34SEL
-                stz zWOBJSEL
-                stz zWH0            ; window 1 left  = 0
-                stz zWH1            ; window 1 right = 0
-                stz zWH2            ; window 2 left  = 0
-                stz zWH3            ; window 2 right = 0
-                stz zWBGLOG         ; windows OR together when overlapped
-                stz zWOBJLOG
+                stz   W12SEL        ; disable windows
+                stz   W34SEL
+                stz   WOBJSEL
+                stz   WH0           ; window 1 left  = 0
+                stz   WH1           ; window 1 right = 0
+                stz   WH2           ; window 2 left  = 0
+                stz   WH3           ; window 2 right = 0
+                stz   WBGLOG        ; windows OR together when overlapped
+                stz   WOBJLOG
 
                 ;; Main/sub screen settings
-                stz zTM             ; all BGs/OBJs disabled on main and sub
-                stz zTS
-                stz zTMW            ; BGs/OBJs are not disabled by windows
-                stz zTSW
+                stz   TM            ; all BGs/OBJs disabled on main and sub
+                stz   TS
+                stz   TMW           ; BGs/OBJs are not disabled by windows
+                stz   TSW
                 
                 ;; Color math settings
-                mva #$30, zCGWSEL   ; force main black off, color math off
-                                    ; sub BG/OBJ disabled, no direct color
-                stz zCGADSUB        ; addition, no divide, all BGs/OBJs off
-                mva #$e0, zCOLDATA  ; set sub screen backdrop to black
+                lda.b #$30          ; force main black off, color math off
+                sta   CGWSEL        ; sub BG/OBJ disabled, no direct color
+                stz   CGADSUB       ; addition, no divide, all BGs/OBJs off
+                lda.b #$e0          ; set sub screen backdrop to black
+                sta   COLDATA
 
                 ;; PPU settings
-                stz zSETINI         ; no ext sync, no extbg, no pseudo 512,
+                stz   SETINI        ; no ext sync, no extbg, no pseudo 512,
                                     ; 256x224, low v-res OBJs, no interlace
 
                 ;; WRAM settings
-                stz zWMADDL         ; WRAM addr 0
-                stz zWMADDM
-                stz zWMADDH
+                stz   WMADDL        ; WRAM addr 0
+                stz   WMADDM
+                stz   WMADDH
 
-                a16                 ; set direct page to $4200
-                lda #$4200
+                %a16()              ; set direct page to $4200
+                lda.w #$4200
                 tcd
-                .dpage $4200
-                a8
+                dpbase $4200
+                %a8()
 
                 ;; Joypad settings
-                stz zNMITIMEN       ; no NMI, no H/V IRQ, disable joypads
-                mva #$ff, zWRIO     ; joypad IO pins floating
+                stz   NMITIMEN      ; no NMI, no H/V IRQ, disable joypads
+                lda.b #$ff          ; joypad IO pins floating
+                sta   WRIO
 
                 ;; Multiplier and divider inputs
-                stz zWRMPYA         ; multiplicand = 0
-                stz zWRMPYB         ; multiplier   = 0
-                stz zWRDIVL         ; dividend     = 0
-                stz zWRDIVH
-                stz zWRDIVB         ; divisor      = 0
+                stz   WRMPYA        ; multiplicand = 0
+                stz   WRMPYB        ; multiplier   = 0
+                stz   WRDIVL        ; dividend     = 0
+                stz   WRDIVH
+                stz   WRDIVB        ; divisor      = 0
 
                 ;; H/V counter settings
-                stz zHTIMEL         ; h = 0
-                stz zHTIMEH
-                stz zVTIMEL         ; v = 0
-                stz zVTIMEH
+                stz   HTIMEL        ; h = 0
+                stz   HTIMEH
+                stz   VTIMEL        ; v = 0
+                stz   VTIMEH
 
                 ;; DMA settings
-                stz zMDMAEN         ; disable all DMA channels
-                stz zHDMAEN         ; disable all HDMA channels
+                stz   MDMAEN        ; disable all DMA channels
+                stz   HDMAEN        ; disable all HDMA channels
 
-                a16                 ; set direct page to $4300
-                lda #$4300
+                %a16()              ; set direct page to $4300
+                lda.w #$4300
                 tcd
-                .dpage $4300
-                a8
+                dpbase $4300
+                %a8()
 
-                lda #$00
-                ldx #$00
-                ldy #7
--               stz zDMAP0,x        ; A -> B, HDMA direct, increment A, [B]
-                stz zBBAD0,x        ; B-bus addr = $2100
-                stz zA1T0L,x        ; A-bus/HDMA table addr = $000000
-                stz zA1T0H,x
-                stz zA1B0,x
-                stz zDAS0L,x        ; 64 KB DMA/indirect HDMA addr = $000000
-                stz zDAS0H,x
-                stz zDASB0,x
-                stz zA2A0L,x        ; HDMA table current addr = $0000
-                stz zA2A0H,x
-                stz zNTRL0,x        ; HDMA line count = no repeat, 0 lines
-                stz zUNUSED0,x      ; clear unused byte
+                lda.b #$00
+                ldx.b #$00
+                ldy.b #7
+-               stz   DMAP0,x       ; A -> B, HDMA direct, increment A, [B]
+                stz   BBAD0,x       ; B-bus addr = $2100
+                stz   A1T0L,x       ; A-bus/HDMA table addr = $000000
+                stz   A1T0H,x
+                stz   A1B0,x
+                stz   DAS0L,x       ; 64 KB DMA/indirect HDMA addr = $000000
+                stz   DAS0H,x
+                stz   DASB0,x
+                stz   A2A0L,x       ; HDMA table current addr = $0000
+                stz   A2A0H,x
+                stz   NTRL0,x       ; HDMA line count = no repeat, 0 lines
                 clc
-                adc #$10
+                adc.b #$10
                 tax
                 dey
-                bpl -
+                bpl   -
 
-                a16
-                mva #<>zero,    zA1T0L  ; A-bus addr = zero
-                mvx #`zero,     zA1B0
-                ldy #%00000001          ; DMA channel 0
+                %a16()
+                lda.w #zero         ; A-bus addr = zero
+                sta   A1T0L
+                ldx.b #bank(zero)
+                stx   A1B0
+                ldy.b #%00000001    ; DMA channel 0
 
                 ;; Initialize OAM
-                mvx #%00001010, zDMAP0  ; A -> B, fixed, write to [B, B]
-                mvx #<OAMDATA,  zBBAD0  ; B-bus addr = OAMDATA
-                mva #$0220,     zDAS0L  ; bytes to transfer = $220
-                sty MDMAEN              ; clear OAM
+                ldx.b #%00001010    ; A -> B, fixed, write to [B, B]
+                stx   DMAP0
+                ldx.b #OAMDATA      ; B-bus addr = OAMDATA
+                stx   BBAD0
+                lda.w #$0220        ; bytes to transfer = $220
+                sta   DAS0L
+                sty   MDMAEN        ; clear OAM
 
                 ;; Initialize CGRAM
-                mvx #<CGDATA,   zBBAD0  ; B-bus addr = CGDATA
-                mva #$0200,     zDAS0L  ; bytes to transfer = $200
-                sty MDMAEN              ; clear CGRAM
+                ldx.b #CGDATA       ; B-bus addr = CGDATA
+                stx   BBAD0
+                lda.w #$0200        ; bytes to transfer = $200
+                sta   DAS0L
+                sty   MDMAEN        ; clear CGRAM
 
                 ;; Initialize VRAM
-                mvx #%00001001, zDMAP0  ; A -> B, fixed, write to [B, B+1]
-                mvx #<VMDATAL,  zBBAD0  ; B-bus addr = VMDATAL
-                sty MDMAEN              ; clear VRAM
+                ldx.b #%00001001    ; A -> B, fixed, write to [B, B+1]
+                stx   DMAP0
+                ldx.b #VMDATAL      ; B-bus addr = VMDATAL
+                stx   BBAD0
+                sty   MDMAEN        ; clear VRAM
 
                 ;; Initialize WRAM
-                mvx #%00001000, zDMAP0  ; A -> B, fixed, write to [B]
-                mvx #<WMDATA,   zBBAD0  ; B-bus addr = WMDATA
-                sty MDMAEN              ; clear WRAM $7e0000-$7effff
-                sty MDMAEN              ; clear WRAM $7f0000-$7fffff
+                ldx.b #%00001000    ; A -> B, fixed, write to [B]
+                stx   DMAP0
+                ldx.b #WMDATA       ; B-bus addr = WMDATA
+                stx   BBAD0
+                sty   MDMAEN        ; clear WRAM $7e0000-$7effff
+                sty   MDMAEN        ; clear WRAM $7f0000-$7fffff
 
-                lda #$0000              ; set direct page to $0000
+                lda.w #$0000        ; set direct page to $0000
                 tcd
-                .dpage $0000
+                dpbase $0000
 
-                ldx #$00
-                ldy #$00
+                ldx.b #$00
+                ldy.b #$00

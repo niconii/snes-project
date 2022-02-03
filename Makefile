@@ -21,7 +21,8 @@ $(DIRS):
 	mkdir -p $@
 
 $(ROM): $(ROM_SRC) $(GRAPHICS) | $(DIRS)
-	64tass -f -l $(BUILD)/labels.txt -L $(BUILD)/listing.txt -o $@ $(ROM_MAP)
+	rm -f $@
+	asar --symbols=wla $(ROM_MAP) $@
 
 $(TOOLS): | $(DIRS)
 
