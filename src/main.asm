@@ -1,74 +1,74 @@
-main            dma_to_vram 0, font, font_size, $0000
+main:           %dma_to_vram(0, font, datasize(font), $0000)
 
-                ; ldy #$01
-                sty TM              ; enable BG1
-                ldy #%00000100      ; map addr = $0400
-                sty BG1SC
-                ldy #$00            ; tile addr = $0000
-                sty BG12NBA
+                ; ldy.b #$01
+                sty   TM            ; enable BG1
+                ldy.b #%00000100    ; map addr = $0400
+                sty   BG1SC
+                ldy.b #$00          ; tile addr = $0000
+                sty   BG12NBA
 
-                ; ldy #$00
-                sty CGADD
-                ldy #<rgb( 6,20,27)
-                sty CGDATA
-                ldy #>rgb( 6,20,27)
-                sty CGDATA
-                ldy #<rgb(31,31,31)
-                sty CGDATA
-                ldy #>rgb(31,31,31)
-                sty CGDATA
+                ; ldy.b #$00
+                sty   CGADD
+                ldy.b #rgb(6,20,27)
+                sty   CGDATA
+                ldy.b #rgb(6,20,27)>>8
+                sty   CGDATA
+                ldy.b #rgb(31,31,31)
+                sty   CGDATA
+                ldy.b #rgb(31,31,31)>>8
+                sty   CGDATA
 
-                lda #($0400 + 32*2 + 2) ; BG1 map (2, 2)
-                sta VMADDL
-                a8
-                ldy #0
--               lda hello_str,y
-                beq +
+                lda.w #($0400+32*2+2)   ; BG1 map (2, 2)
+                sta   VMADDL
+                %a8()
+                ldy.b #0
+-               lda   hello_str,y
+                beq   +
                 sec
-                sbc #32
-                sta VMDATAL
-                stz VMDATAH
+                sbc.b #32
+                sta   VMDATAL
+                stz   VMDATAH
                 iny
-                bra -
-+               a16
+                bra   -
++               %a16()
 
-                ldy #$0f
-                sty ScrBrightness
+                ldy.b #$0f
+                sty   ScrBrightness
 
-                ldy #$81
-                sty NMITIMEN
+                ldy.b #$81
+                sty   NMITIMEN
 
-main_loop       ; do processing here
+main_loop:      ; do processing here
 
-                jsr vsync
-                ldy #$8f            ; turn off screen for safety
-                sty INIDISP
+                jsr   vsync
+                ldy.b #$8f          ; turn off screen for safety
+                sty   INIDISP
 
                 ; update screen here
 
-                ldy ScrBrightness   ; turn screen back on
-                sty INIDISP
-                inc32 StepCtL
-                jmp main_loop
+                ldy   ScrBrightness ; turn screen back on
+                sty   INIDISP
+                %inc32(StepCtL)
+                jmp   main_loop
 
-vsync           ldy FrameCtL
-_spin           wai
-                cpy FrameCtL
-                beq _spin
+vsync:          ldy   FrameCtL
+.spin:          wai
+                cpy   FrameCtL
+                beq   .spin
                 rts
 
-                .databank ?
-                .dpage ?
-vblank          rep #%11111011      ; clear all flags except interrupt
-                .al
+                bank noassume
+                optimize dp none
+vblank:         rep   #%11111011    ; clear all flags except interrupt
                 phb                 ; set data bank to $00
                 phk
                 plb
-                .databank $00
-                inc32 FrameCtL
+                bank $7e
+                %inc32(FrameCtL)
                 plb
-dummy_handler   rti                 ; interrupt handler that does nothing
+dummy_handler:  rti                 ; interrupt handler that does nothing
+                optimize dp always
 
-zero            .byte $00           ; used to clear memory with DMAs
+zero:           db    $00           ; used to clear memory with DMAs
 
-hello_str       .null "HELLO, WORLD!"
+hello_str:      db    "HELLO, WORLD!",0

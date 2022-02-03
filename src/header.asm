@@ -1,31 +1,31 @@
-header          .block
-                ;      123456789012345678901
-title           .text "TEST ROM             "
-map_mode        .byte $30  ; lorom, fast
-chipset         .byte $00  ; ROM
-rom_size        .byte 5    ; 32 (1<<5) KB ROM
-ram_size        .byte 0    ; no RAM
-country         .byte $00  ; international
-developer       .byte $00  ; none
-version         .byte $00  ; 1.0
-checksum        .word $ffff, $0000
-                .endblock
+                namespace header
+                ;   123456789012345678901
+title:          db "TEST ROM             "
+map_mode:       db $30  ; lorom, fast
+chipset:        db $00  ; ROM
+rom_size:       db 5    ; 32 (1<<5) KB ROM
+ram_size:       db 0    ; no RAM
+country:        db $00  ; international
+developer:      db $00  ; none
+version:        db $00  ; 1.0
+checksum:       dw $ffff, $0000
+                namespace off
 
-vectors         .block
-                .addr dummy_handler
-                .addr dummy_handler
-cop_816         .addr dummy_handler
-brk_816         .addr dummy_handler
-                .addr dummy_handler
-nmi_816         .addr vblank
-                .addr dummy_handler
-irq_816         .addr dummy_handler
-                .addr dummy_handler
-                .addr dummy_handler
-cop_02          .addr dummy_handler
-                .addr dummy_handler
-                .addr dummy_handler
-nmi_02          .addr dummy_handler
-reset_02        .addr reset
-irq_brk_02      .addr dummy_handler
-                .endblock
+                namespace vectors
+                dw dummy_handler
+                dw dummy_handler
+cop_816:        dw dummy_handler
+brk_816:        dw dummy_handler
+                dw dummy_handler
+nmi_816:        dw vblank
+                dw dummy_handler
+irq_816:        dw dummy_handler
+                dw dummy_handler
+                dw dummy_handler
+cop_02:         dw dummy_handler
+                dw dummy_handler
+                dw dummy_handler
+nmi_02:         dw dummy_handler
+reset_02:       dw reset
+irq_brk_02:     dw dummy_handler
+                namespace off
